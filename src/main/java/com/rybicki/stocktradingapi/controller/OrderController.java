@@ -1,29 +1,21 @@
 package com.rybicki.stocktradingapi.controller;
 
+import com.rybicki.stocktradingapi.model.OrderDTO;
+import com.rybicki.stocktradingapi.service.SenderService;
 import lombok.AllArgsConstructor;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @AllArgsConstructor
 @RestController
 public class OrderController {
 
-    private KafkaTemplate<String, String> kafkaTemplate;
+    private SenderService senderService;
 
-    //TODO change params into DTO and Mapping to POST
-    @GetMapping(value = "/order/create/{orderType}/{userId}/{companyIndex}/{currency}/{amount}")
-    public String createOrderForBuyStocks(@PathVariable String orderType, @PathVariable String userId, @PathVariable String companyIndex,
-                                          @PathVariable String currency, @PathVariable String amount) {
-        kafkaTemplate.send("Orders", orderType + "," + userId + "," + companyIndex + "," + currency + "," + amount);
-        return "Buy order sent to consumers";
+    @PostMapping(value = "/order/create")
+    public String createOrder(@RequestBody OrderDTO orderDTO) {
+        senderService.send(orderDTO);
+        return orderDTO.getOrderType().getType() + " order sent to consumers";
     }
-
-    @GetMapping(value = "/order/create/{orderType}/{userId}/{companyIndex}")
-    public String createOrderForSellStocks(@PathVariable String orderType, @PathVariable String userId, @PathVariable String companyIndex) {
-        kafkaTemplate.send("Orders", orderType + "," + userId + "," + companyIndex);
-        return "Sell order sent to consumers";
-    }
-
 }
